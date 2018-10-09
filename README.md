@@ -8,11 +8,17 @@ VM specifications can be found [here](https://www.fireeye.com/content/dam/fireey
 
 
 ## Installation
-    1. Copy `CustomProc.py` to the Ida 7 `proc` directory
-    2. Copy `CustomProcInstructionSet` and its contents to the Ida 7 `proc` directory
+1. Copy **CustomProc.py** to the Ida 7 "*proc*" directory
+2. Copy **CustomProcInstructionSet** and its contents to the Ida 7 "*proc*" directory
 
 ## Usage
-    1. Open sample codes from `Samples` in IDA 7 (using drag and drop.)
-    3. Select 'CustomProcessor' from processor modules.
+1. Open sample codes from "*Samples*" in IDA 7 (using drag and drop.)
+2. Select **CustomProcessor** from processor type.
 
 ## Screen Shots
+
+Disassembly mode:
+![Normal Mode](ScreenShots/screenshot1.PNG "Disassembly mode")
+
+Graph mode:
+![Graph Mode](ScreenShots/screenshot2.PNG "Graph mode")
