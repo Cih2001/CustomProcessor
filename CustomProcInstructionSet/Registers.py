@@ -1,3 +1,11 @@
+# Register.py:
+#   Set of registers related data and functions.
+# Author: 
+#   Hamidreza Ebtehaj (https://twitter.com/cih2001)
+# VM spec:
+#   https://www.fireeye.com/content/dam/fireeye-www/blog/pdfs/FlareOn5_Challenge10_Solution.pdf
+
+
 from idaapi import *
 
 NONE_REG = 0xff

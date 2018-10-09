@@ -1,6 +1,22 @@
-from idaapi import *
+# CustomProc.py:
+#   IDA processor module for challenge 10 of flare-on 2018
+# Desc:
+#   It's the processor core. It's a special processor module for a specific
+#   VM and can't be used in other scenarios without necessary modifications,
+#   However, By adopting some design principles like SRP and OCP, It's 
+#   designed in a special way to reduce amount of required changes in case
+#   of reusing for other purposes.
+# Author: 
+#   Hamidreza Ebtehaj (https://twitter.com/cih2001)
+# VM spec:
+#   https://www.fireeye.com/content/dam/fireeye-www/blog/pdfs/FlareOn5_Challenge10_Solution.pdf
+# Inspired by:
+#   https://github.com/invano/ida-subleq
 
-NONE_REG = 0xff
+from idaapi import *
+import CustomProcInstructionSet.Registers
+import CustomProcInstructionSet.Instructions
+from CustomProcInstructionSet.Registers import NONE_REG
 
 class CustomProcessor(processor_t):
     id = 0x8000 + 0x666
@@ -47,31 +63,29 @@ class CustomProcessor(processor_t):
 
     # Importing registers
     reg_names = regNames = []
-    import CustomProcInstructionSet.Registers
     for r in CustomProcInstructionSet.Registers.registers_opcode:
         reg_names.append(r["name"])
 
     # Importing instructions
-    import CustomProcInstructionSet.Instructions
     instruction_class_list = [(cls) for name, cls in CustomProcInstructionSet.Instructions.__dict__.items() if name.startswith("Instruction")]
-    
     instruc = []
     for c in instruction_class_list:
         instruc.append({'name': c.name , 'feature': c.feature })
-        
     instruc_end = len(instruc)
 
-    
+    # Initializes processor module
     def __init__(self):
         processor_t.__init__(self)
         self._init_instructions()
         self._init_registers()
 
+    # Initializes instructions class list and index
     def _init_instructions(self):
         self.instructions = {}
         for idx, ins in enumerate(self.instruction_class_list):
             self.instructions[idx] = ins
 
+    # Initializes required members for assembler class
     def _init_registers(self):
         self.reg_ids = {}
         for i, reg in enumerate(self.reg_names):
@@ -79,10 +93,12 @@ class CustomProcessor(processor_t):
         self.reg_first_sreg = self.reg_code_sreg = self.reg_ids["CS"]
         self.reg_last_sreg = self.reg_data_sreg = self.reg_ids["DS"]
 
-
+    # Callback notification for ev_ana_insn
+    # Analyze one instruction and fill 'insn' structure
+    # This is where instructions are recognized
     def notify_ana(self, insn):
         ea = insn.ea
-        opcode = get_full_byte(ea)
+        opcode = get_byte(ea)
         for idx, cls in self.instructions.items():
             if cls.opcode == opcode:
                 insn.itype = idx
@@ -90,7 +106,9 @@ class CustomProcessor(processor_t):
                 self.instructions[idx].emulate(insn)
                 return insn.size
         return False
-        
+    
+    # Callback notification for ev_emu_insn 
+    # Emulate instruction, create cross-references, plan to analyze subsequent instructions, modify flags etc.
     def notify_emu(self, insn):
         ft = insn.get_canon_feature()
         a = insn[0].addr
@@ -107,6 +125,8 @@ class CustomProcessor(processor_t):
             insn.add_cref(insn.ea + insn.size, 0, fl_F)
         return True
 
+    # Callback notification for ev_out_operand 
+    # Generate text representation of an instruction operand outctx_t provides functions to output the generated text.
     def notify_out_operand(self, outctx, op):
         if op.type == o_imm:
             outctx.out_value(op, OOFW_IMM)
@@ -153,6 +173,8 @@ class CustomProcessor(processor_t):
             outctx.out_printf("]")
         return True
 
+    # Callback notification for ev_out_insn 
+    # Generate text representation of an instruction in 'ctx.insn' outctx_t provides functions to output the generated text. 
     def notify_out_insn(self,outctx):
         insn=outctx.insn
         ft = insn.get_canon_feature()

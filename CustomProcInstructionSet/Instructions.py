@@ -1,29 +1,42 @@
+# Instructions.py:
+#   Instruction set for the custom VM of challenge 10 of flare-on 2018
+# Author: 
+#   Hamidreza Ebtehaj (https://twitter.com/cih2001)
+# VM spec:
+#   https://www.fireeye.com/content/dam/fireeye-www/blog/pdfs/FlareOn5_Challenge10_Solution.pdf
+
+
 from idaapi import *
 from Registers import *
 
 NAME_PREFIX = "vm_"
-
 signed_word = lambda a: a if a <= 32767 else a-65536
 
+# Set operator type: near (usually used for near jumps and calls)
 def _set_op_near(insn, dtyp, addr):
     insn.type = o_near
     insn.dtyp = dtyp
     insn.addr = addr
 
+# Set operator type: physical memory access
 def _set_op_mem(insn, dtyp, value):
     insn.type = o_mem
     insn.dtyp = dtyp
     insn.addr = value
 
+# Set operator type: immidiate value
 def _set_op_imm(insn, dtyp, value):
     insn.type = o_imm
     insn.dtyp = dtyp
     insn.value = value
 
+# Set operator type: register
 def _set_op_reg(insn, reg):
     insn.type = o_reg
     insn.reg = reg
 
+# Set operator type: displacement
+# Memory Reg [Base Reg + Index Reg + Displacement].
 def _set_op_displ(insn, dtyp, reg, phrase, addr):
     insn.type = o_displ
     insn.dtyp = dtyp
@@ -31,6 +44,8 @@ def _set_op_displ(insn, dtyp, reg, phrase, addr):
     insn.value = phrase
     insn.addr = addr
 
+# Set operator type: Custom operator type for VM
+# Memory Reg [Reg1 + Reg2 + Reg3 + Reg4 + Displacement].
 def _set_op_idpspec0(insn, dtyp, value, specflag1 = NONE_REG, specflag2 = NONE_REG, specflag3 = NONE_REG, specflag4 = NONE_REG):
     insn.type = o_idpspec0
     insn.dtyp = dtyp
@@ -40,6 +55,11 @@ def _set_op_idpspec0(insn, dtyp, value, specflag1 = NONE_REG, specflag2 = NONE_R
     insn.specflag3 = specflag3
     insn.specflag4 = specflag4
 
+# RULES TO DEFINE A NEW INSTRUCTION
+#   1. It should be defined in a class with a name starting with "Instruction"
+#   2. Required static members: size, name, feature and opcode
+#   3. Required static method: emulate ( where opcodes are recognized. )
+#   4. In case of variable instruction size, insn.size should be fixed in emulate() method.
 
 class Instruction1:
     size = 1
