@@ -38,6 +38,8 @@ registers_opcode = [
 	{"index" : 32, "name" : "r15d"},
     {"index" : 33, "name" : "ah"},
     {"index" : 34, "name" : "al"},
+	{"index" : 35, "name" : "CS"},
+	{"index" : 36, "name" : "DS"},
 ]
 
 
